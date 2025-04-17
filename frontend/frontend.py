@@ -10,7 +10,6 @@ from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
 import av
 import wave
 import os
-import sounddevice as sd
 import threading
 import pyaudio
 import base64
