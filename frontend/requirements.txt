@@ -3,3 +3,4 @@ requests
 audio-recorder-streamlit
 soundfile
 numpy
+streamlit-webrtc
