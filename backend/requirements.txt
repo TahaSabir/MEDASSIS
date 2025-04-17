@@ -20,3 +20,5 @@ itsdangerous
 slowapi
 pydantic
 bleach 
+gtts
+pydub
