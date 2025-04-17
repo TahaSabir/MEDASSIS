@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # Collapse sidebar by default on mobile
 )
 
-# Custom CSS
+
 st.markdown("""
 <style>
     /* Custom styles for responsiveness and UI improvements */
