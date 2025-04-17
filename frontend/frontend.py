@@ -26,15 +26,13 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
-    /* Existing styles */
+    /* Custom styles for responsiveness and UI improvements */
     .main {
         background-color: #f8f9fa;
         padding: 1rem;
     }
-    
-    /* Mobile-first responsive styles */
     .stButton>button {
-        width: 100%;  /* Full width buttons */
+        width: 100%;
         margin: 0.5rem 0;
         padding: 0.75rem;
         font-size: 1rem;
@@ -43,62 +41,9 @@ st.markdown("""
         border-radius: 8px;
         border: none;
     }
-    
-    /* Text areas and inputs */
-    .stTextArea>div>div>textarea {
-        font-size: 16px !important;  /* Prevent zoom on mobile */
-        line-height: 1.5;
-    }
-    
-    /* Columns on mobile */
-    @media (max-width: 640px) {
-        .row-widget.stHorizontal > div {
-            flex-direction: column;
-        }
-        
-        .row-widget.stHorizontal > div > div {
-            width: 100% !important;
-            margin-bottom: 1rem;
-        }
-        
-        /* Adjust text size for mobile */
-        .main * {
-            font-size: 14px;
-        }
-        
-        h1 {
-            font-size: 1.5rem !important;
-        }
-        
-        h2 {
-            font-size: 1.25rem !important;
-        }
-        
-        h3 {
-            font-size: 1.1rem !important;
-        }
-    }
-    
-    /* Audio controls */
     audio {
         width: 100%;
         max-width: 100%;
-    }
-    
-    /* Make containers more compact on mobile */
-    .element-container {
-        padding: 0.5rem 0;
-    }
-    
-    /* Improve touch targets */
-    .stSelectbox [data-baseweb=select] {
-        min-height: 44px;
-    }
-    
-    /* Loading spinner */
-    .stSpinner {
-        text-align: center;
-        margin: 1rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
