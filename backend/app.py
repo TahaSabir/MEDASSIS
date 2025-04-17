@@ -20,6 +20,7 @@ from pydub import AudioSegment
 import base64
 from typing import Literal
 from googletrans import Translator
+from backend.tts import text_to_speech
 
 # Security configurations
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB limit
@@ -89,30 +90,6 @@ LANGUAGE_VOICE_MAP = {
     "zu": "zu",  # Zulu
 }
 
-def text_to_speech(text: str, output_path: str = "output/output.wav", source_language: str = "es", target_language: str = "en"):
-    """
-    Convert text to speech using gTTS (Google Text-to-Speech).
-    Supports multiple languages and works in open-source environments.
-    """
-    try:
-        # Ensure the output directory exists
-        output_dir = os.path.dirname(output_path)
-        if output_dir:
-            os.makedirs(output_dir, exist_ok=True)
-
-        # Get the language for the target language
-        target_voice = LANGUAGE_VOICE_MAP.get(target_language)
-        if not target_voice:
-            raise ValueError(
-                f"Unsupported language '{target_language}'. Supported languages: {', '.join(LANGUAGE_VOICE_MAP.keys())}"
-            )
-
-        # Generate speech using gTTS
-        tts = gTTS(text=text, lang=target_voice)
-        tts.save(output_path)
-        return output_path, text
-    except Exception as e:
-        raise RuntimeError(f"TTS conversion failed: {str(e)}")
 # Configure logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -226,32 +203,36 @@ async def stt_endpoint(
         )
 
 @app.post("/tts")
-async def tts_endpoint(request: TTSRequest):
+async def tts_endpoint(request: Request):
+    """
+    Text-to-Speech endpoint.
+    """
     try:
-        # First translate the text
-        translator = Translator()
-        translated_text = translator.translate(request.text, dest=request.target_language).text
-        
-        # Generate the speech with translated text
-        output_path, _ = text_to_speech(
-            text=translated_text,  # Use the translated text
-            output_path="output/output.wav",
-            target_language=request.target_language
-        )
+        data = await request.json()
+        text = data.get("text")
+        target_language = data.get("target_language")
 
-        # Read the audio file and encode it in Base64
-        with open(output_path, "rb") as audio_file:
-            audio_bytes = audio_file.read()
-            audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+        if not text or not target_language:
+            raise ValueError("Both 'text' and 'target_language' are required.")
 
-        # Return the Base64-encoded audio and translated transcript
-        return JSONResponse({
+        # Generate the speech and get the response
+        output_path = "temp/output.wav"
+        tts_response = text_to_speech(text, output_path, target_language)
+
+        # Read the audio file and encode it as base64
+        with open(tts_response["audio_file"], "rb") as audio_file:
+            audio_base64 = base64.b64encode(audio_file.read()).decode("utf-8")
+
+        return {
             "audio_file": audio_base64,
-            "transcript": translated_text  # Return the translated text as transcript
-        })
+            "transcribed_text": tts_response["transcribed_text"]
+        }
     except Exception as e:
-        logger.error(f"TTS endpoint error: {str(e)}")
-        return JSONResponse({"error": str(e)}, status_code=500)
+        logger.error(f"TTS endpoint failed: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
 
 if __name__ == "__main__":
     import uvicorn
