@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # Collapse sidebar by default on mobile
 )
 
-
+# Custom CSS
 st.markdown("""
 <style>
     /* Custom styles for responsiveness and UI improvements */
@@ -118,6 +118,7 @@ def show_translation_mode():
 def show_stt_mode():
     st.header("Speech-to-Text")
     
+    # Input Language Selection
     input_lang = st.selectbox(
         "Input Language",
         options=list(LANGUAGES.keys()),
@@ -125,25 +126,48 @@ def show_stt_mode():
         key="stt_input_lang"
     )
     
+    # Output Language Selection
+    output_lang = st.selectbox(
+        "Output Language",
+        options=list(LANGUAGES.keys()),
+        format_func=lambda x: LANGUAGES[x],
+        key="stt_output_lang"
+    )
+    
     st.markdown("### Record Audio")
     audio_data = audio_recorder()
 
-    if audio_data:
-        st.audio(audio_data, format="audio/wav")
+    st.markdown("### Or Upload Audio File")
+    uploaded_file = st.file_uploader("Upload an audio file", type=["wav", "mp3", "ogg"])
+
+    if audio_data or uploaded_file:
+        if audio_data:
+            st.audio(audio_data, format="audio/wav")
+            audio_to_process = audio_data
+        elif uploaded_file:
+            st.audio(uploaded_file, format=uploaded_file.type)
+            audio_to_process = uploaded_file.read()
+
         if st.button("Process Audio", key="process_audio_button"):
             with st.spinner("Processing audio..."):
                 try:
                     # Send audio data to the backend
-                    files = {"audio_file": ("audio.wav", audio_data, "audio/wav")}
+                    files = {"audio_file": ("audio.wav", audio_to_process, "audio/wav")}
                     response = requests.post(
                         f"{API_URL}/stt",
                         files=files,
-                        data={"input_language": input_lang}
+                        data={
+                            "input_language": input_lang,
+                            "output_language": output_lang
+                        }
                     )
                     if response.status_code == 200:
                         result = response.json()
-                        st.subheader("Transcribed Text:")
-                        st.write(result["transcribed_text"])
+                        if "transcribed_text" in result:
+                            st.subheader("Transcribed Text:")
+                            st.write(result["transcribed_text"])
+                        else:
+                            st.error("Error: 'transcribed_text' not found in the response.")
                     else:
                         st.error(f"Error: {response.json().get('error', 'Failed to process audio')}")
                 except Exception as e:
