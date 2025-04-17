@@ -1,0 +1,15 @@
+.App {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .section {
+    margin-bottom: 30px;
+  }
+  
+  textarea {
+    width: 100%;
+  }
+  

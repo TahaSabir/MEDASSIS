@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Healthcare Translation App</title>
+</head>
+<body>
+  <h1>Healthcare Translation Web App</h1>
+
+  <div>
+    <textarea id="text" placeholder="Enter text to translate"></textarea><br>
+    <input type="text" id="target_language" placeholder="Enter target language"><br>
+    <button onclick="translateText()">Translate</button>
+  </div>
+
+  <h2>Translated Text:</h2>
+  <div id="translatedText"></div>
+
+  <script>
+    async function translateText() {
+      const text = document.getElementById("text").value;
+      const targetLanguage = document.getElementById("target_language").value;
+
+      const response = await fetch('http://127.0.0.1:8000/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: text, target_language: targetLanguage })
+      });
+
+      const data = await response.json();
+      if (data.translated_text) {
+        document.getElementById("translatedText").innerText = data.translated_text;
+      } else {
+        document.getElementById("translatedText").innerText = "Error: " + data.error;
+      }
+    }
+  </script>
+</body>
+</html>
