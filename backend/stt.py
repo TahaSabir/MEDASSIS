@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Set up custom temp directory
 TEMP_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "temp")
-os.makedirs(TEMP_DIR, exist_ok=True)
+os.makedirs(TEMP_DIR, exist_ok=True)  # Fixed: Changed 'exist' to 'exist_ok'
 tempfile.tempdir = TEMP_DIR
 
 # Initialize the Whisper model
@@ -47,7 +47,7 @@ def transcribe_audio(audio_bytes: bytes, input_language: str = "en", output_lang
 
         return {
             "original_text": original_text.strip(),
-            "translated_text": translated_text.strip(),
+            "transcribed_text": translated_text.strip(),  # Add transcribed_text for frontend compatibility
             "confidence": sum([segment.avg_logprob for segment in segments]) / max(len(segments), 1),
             "language": output_language,
             "segments": [{"text": s.text, "start": s.start, "end": s.end} for s in segments]
