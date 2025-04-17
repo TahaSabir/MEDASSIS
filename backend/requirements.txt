@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+transformers
+torch
+pyttsx3
+python-multipart
+streamlit
+requests
+audio-recorder-streamlit
+soundfile
+numpy

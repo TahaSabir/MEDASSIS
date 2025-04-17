@@ -22,7 +22,7 @@ SUPPORTED_LANGUAGES = {
 }
 
 # Model configuration
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model.gguf")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "MMed-Llama-3-8B.Q4_K_S.gguf")
 DEFAULT_CONTEXT_SIZE = 512
 DEFAULT_THREADS = 4
 
