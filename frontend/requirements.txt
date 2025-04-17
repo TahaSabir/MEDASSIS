@@ -4,4 +4,3 @@ audio-recorder-streamlit
 soundfile
 numpy
 streamlit-webrtc
-sounddevice
