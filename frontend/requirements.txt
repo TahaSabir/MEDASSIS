@@ -4,3 +4,4 @@ audio-recorder-streamlit
 soundfile
 numpy
 streamlit-webrtc
+payaudio
