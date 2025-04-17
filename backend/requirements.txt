@@ -17,3 +17,5 @@ soundfile
 numpy
 streamlit-webrtc
 itsdangerous
+slowapi
+pydantic
