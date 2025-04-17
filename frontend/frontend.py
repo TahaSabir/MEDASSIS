@@ -205,8 +205,20 @@ def show_tts_mode():
                 )
                 if response.status_code == 200:
                     result = response.json()
-                    audio_bytes = base64.b64decode(result["audio_file"])
-                    st.audio(audio_bytes, format="audio/wav")
+                    
+                    # Display the transcribed text
+                    if "transcribed_text" in result:
+                        st.subheader("Transcribed Text:")
+                        st.write(result["transcribed_text"])
+                    else:
+                        st.warning("Transcribed text not found in the response.")
+                    
+                    # Play the generated audio
+                    if "audio_file" in result:
+                        audio_bytes = base64.b64decode(result["audio_file"])
+                        st.audio(audio_bytes, format="audio/wav")
+                    else:
+                        st.error("Audio file not found in the response.")
                 else:
                     st.error("Failed to generate speech")
             except Exception as e:
