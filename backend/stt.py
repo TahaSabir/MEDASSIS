@@ -5,63 +5,54 @@ import os
 from typing import Dict, Any
 import logging
 from googletrans import Translator
+import soundfile as sf
+import io
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Set up custom temp directory
+TEMP_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "temp")
+os.makedirs(TEMP_DIR, exist_ok=True)
+tempfile.tempdir = TEMP_DIR
+
+# Initialize the Whisper model
+model = WhisperModel("base", device="cpu", compute_type="int8")
+
 def transcribe_audio(audio_bytes: bytes, input_language: str = "en", output_language: str = "en") -> Dict[str, Any]:
     """
-    Transcribe audio using Faster-Whisper large-v3 model optimized for medical vocabulary.
-    Optionally translates the transcription into the desired output language.
-    Returns a dictionary with transcription text and metadata.
+    Transcribe audio using Faster-Whisper model.
     """
+    tmp_path = None  # Initialize tmp_path to ensure it exists in the finally block
     try:
-        # Initialize the Whisper model
-        model = WhisperModel(
-            model_size_or_path="large-v3",
-            device="cpu",
-            compute_type="int8",
-            num_workers=4
-        )
-
-        # Create a temporary file and close it before passing to the model
+        # Save the raw audio to a temporary file
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             tmp.write(audio_bytes)
-            tmp_path = tmp.name  # Save the file path
-        try:
-            # Transcribe the audio file
-            segments_generator, info = model.transcribe(
-                tmp_path,
-                beam_size=5,
-                word_timestamps=True,
-                vad_filter=True,
-                language=input_language  # Use the specified input language
-            )
-            
-            # Convert the generator to a list
-            segments = list(segments_generator)
-            
-            # Combine all segments into a single text
-            text = " ".join([segment.text for segment in segments])
+            tmp_path = tmp.name  # Assign the temporary file path
 
-            # Translate the text if the input and output languages are different
-            if input_language != output_language:
-                translator = Translator()
-                translated = translator.translate(text, src=input_language, dest=output_language)
-                text = translated.text
+        # Transcribe the audio file
+        segments, info = model.transcribe(tmp_path, language=input_language)
+        segments = list(segments)
 
-            # Prepare the response
-            return {
-                "text": text.strip(),
-                "confidence": sum([segment.avg_logprob for segment in segments]) / max(len(segments), 1),
-                "language": output_language,
-                "segments": [{"text": s.text, "start": s.start, "end": s.end} for s in segments]
-            }
-        finally:
-            # Ensure the temporary file is deleted
+        # Combine all segments into a single text
+        original_text = " ".join([segment.text for segment in segments])
+
+        # Translate the text if needed
+        translated_text = original_text
+        if input_language != output_language:
+            translator = Translator()
+            translated = translator.translate(original_text, src=input_language, dest=output_language)
+            translated_text = translated.text
+
+        return {
+            "original_text": original_text.strip(),
+            "translated_text": translated_text.strip(),
+            "confidence": sum([segment.avg_logprob for segment in segments]) / max(len(segments), 1),
+            "language": output_language,
+            "segments": [{"text": s.text, "start": s.start, "end": s.end} for s in segments]
+        }
+    finally:
+        # Ensure the temporary file is deleted if it was created
+        if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
-            
-    except Exception as e:
-        logger.error(f"Transcription failed: {str(e)}")
-        raise RuntimeError(f"Transcription failed: {str(e)}")

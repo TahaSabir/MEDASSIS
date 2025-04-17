@@ -28,19 +28,11 @@ DEFAULT_THREADS = 4
 
 # Enhanced prompt template for medical translation
 PREPROMPT_TEMPLATE = """
-You are a specialized medical translation assistant. Please translate the following medical text:
-
-Source Language: {source_lang} ({source_lang_name})
-Target Language: {target_lang} ({target_lang_name})
+You are a specialized medical translation assistant. Translate the following medical text from {source_lang_name} to {target_lang_name}.
+Return only the translated text without any additional information or repetition.
 
 Original Text:
 {text}
-
-Requirements:
-- Maintain medical terminology accuracy
-- Preserve formal medical tone
-- Keep formatting and punctuation
-- Ensure cultural appropriateness
 
 Translation:
 """
@@ -108,10 +100,15 @@ class MedicalTranslator:
             # Extract and clean the translated text
             translated_text = response["choices"][0]["text"].strip()
 
-            # Remove any unwanted keywords or template artifacts
-            unwanted_keywords = ["Translation:", "Source Language:", "Target Language:"]
-            for keyword in unwanted_keywords:
-                translated_text = translated_text.replace(keyword, "").strip()
+            # Post-process the output to remove duplicate sentences
+            sentences = translated_text.split(". ")
+            seen = set()
+            cleaned_sentences = []
+            for sentence in sentences:
+                if sentence not in seen:
+                    cleaned_sentences.append(sentence)
+                    seen.add(sentence)
+            translated_text = ". ".join(cleaned_sentences).strip()
 
             # Handle cases where logprobs is None
             confidence = response["choices"][0].get("logprobs", None)
@@ -137,5 +134,18 @@ def translate_text(text: str, source_lang: str = "en", target_lang: str = "es") 
     """Wrapper function for the translator to be used by the API."""
     return translator.translate_text(text, source_lang, target_lang)
 
+def transcribe_audio(audio_path: str) -> str:
+    """
+    Transcribe audio to text.
+    
+    Args:
+        audio_path (str): Path to the audio file to transcribe.
+    
+    Returns:
+        str: Transcribed text from the audio file.
+    """
+    # Placeholder implementation (replace with actual transcription logic)
+    return "Transcribed text from audio"
+
 # Make sure to expose the function in __all__
-__all__ = ['translate_text', 'SUPPORTED_LANGUAGES']
+__all__ = ['translate_text', 'SUPPORTED_LANGUAGES', 'transcribe_audio']
