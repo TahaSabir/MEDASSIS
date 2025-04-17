@@ -11,7 +11,6 @@ import av
 import wave
 import os
 import threading
-import pyaudio
 import base64
 
 # Set page configuration
@@ -285,6 +284,13 @@ def show_stt_mode():
             st.audio(audio_file, format="audio/wav")
             if st.button("Process Uploaded Audio", key="process_upload_button", use_container_width=True):
                 process_audio_file(audio_file, input_lang, output_lang)
+
+    # Record audio
+    audio_data = audio_recorder()
+
+    if audio_data:
+        st.audio(audio_data, format="audio/wav")
+        # You can send `audio_data` to your backend for processing
 
 def process_audio_file(audio_file, input_lang, output_lang):
     """Helper function to process audio files"""
